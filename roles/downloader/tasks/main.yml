@@ -42,3 +42,70 @@
     groups: sudo
     append: yes
 
+- name: Create folder for docker compose
+  file:
+    path: /home/simone/docker-compose
+    state: directory
+    owner: simone
+    group: simone
+    mode: 0755
+
+- name: copy docker-compose file
+  copy:
+    src: files/docker-compose.yml
+    dest: /home/simone/docker-compose/docker-compose.yml
+    owner: simone
+    group: simone
+    mode: 0644
+
+- name: Create Star Apps folder
+  file:
+    path: /home/simone/star-apps
+    state: directory
+    recurse: yes
+    owner: simone
+    group: simone
+    mode: 0755
+
+- name: Copy Starr App Config Files
+  copy:
+    src: files/star-apps/
+    dest: /home/simone/star-apps/
+    owner: simone
+    group: simone
+    mode: 0775
+    remote_src: true
+
+- name: Decrypt Star Config Files
+  shell: ansible-vault decrypt --vault-password-file /home/chris/.vault_key "{{ item }}"
+    #  no_log: True
+  loop:
+    - star-apps/radarr/radarr_config.xml
+    - star-apps/sonarr/sonarr_config.xml
+    - star-apps/sabnzbd/sabnzbd_config.ini
+
+- name: Copy Star app configs
+  copy:
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+    mode: 0644
+  loop:
+    - { src: '/home/chris/ansible_tutorial/roles/downloader/files/star-apps/radarr/radarr_config.xml', dest: '/home/simone/star-apps/radarr/config.xml' }
+    - { src: '/home/chris/ansible_tutorial/roles/downloader/files/star-apps/sonarr/sonarr_config.xml', dest: '/home/simone/star-apps/sonarr/config.xml' }
+    - { src: '/home/chris/ansible_tutorial/roles/downloader/files/star-apps/sabnzbd/sabnzbd_config.ini', dest: '/home/simone/star-apps/sabnzbd/sabnzbd.ini' }
+
+- name: Update permissions on Star app files
+  file:
+    path: "{{ item }}"
+    owner: simone
+    group: simone
+    mode: 0644
+  loop:
+    - /home/simone/star-apps/radarr/config.xml
+    - /home/simone/star-apps/sonarr/config.xml
+    - /home/simone/star-apps/sabnzbd/sabnzbd.ini
+
+- name: Start service
+  command: docker-compose up -d
+  args:
+    chdir: /home/simone/docker-compose
