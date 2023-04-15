@@ -1,0 +1,44 @@
+- name: Install NFS client package
+  apt:
+    name: nfs-common
+    state: present
+  become: yes
+
+- name: Add NFS mount to fstab
+  lineinfile:
+    path: /etc/fstab
+    line: "192.168.68.16:/volume1/downloads /mnt/downloads nfs rw,sync 0 0"
+    state: present
+    create: yes
+  become: yes
+
+- name: Create mount point
+  file:
+    path: /mnt/downloads
+    state: directory
+    mode: 0777
+  become: yes
+
+- name: Mount NFS share
+  mount:
+    path: /mnt/downloads
+    src: "192.168.68.16:/volume1/downloads"
+    fstype: nfs
+    opts: "rw,sync"
+    state: mounted
+  become: yes
+
+- name: install docker and docker-compose
+  apt:
+    name:
+      - docker.io
+      - docker-compose
+    state: present
+  become: yes
+
+- name: Add Docker user to sudo group
+  user:
+    name: docker
+    groups: sudo
+    append: yes
+
