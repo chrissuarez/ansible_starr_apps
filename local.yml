@@ -1,5 +1,5 @@
 ---
-- hosts: all
+- hosts: localhost
   become: true
   pre_tasks:
 
@@ -10,12 +10,12 @@
     changed_when: false
     when: ansible_distribution == "Ubuntu"
 
-- hosts: all
-  become: true
-  roles:
-    - base
+#- hosts: localhost
+#  become: true
+#  roles:
+#    - base
 
-- hosts: downloader
-  become: true
-  roles:
-    - downloader
+#- hosts: downloader
+#  become: true
+#  roles:
+#    - downloader

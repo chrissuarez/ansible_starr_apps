@@ -7,5 +7,5 @@
 [game_server]
 192.168.68.211
 
-[ansible-server]
+[ansible_server]
 192.168.68.103
