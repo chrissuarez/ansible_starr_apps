@@ -126,5 +126,5 @@
 
   - name: Start service
     command: docker-compose up -d
-      args:
-        chdir: /home/chris/docker-compose
+    args:
+      chdir: /home/chris/docker-compose
