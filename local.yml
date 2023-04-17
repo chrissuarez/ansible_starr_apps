@@ -33,12 +33,12 @@
 
   - name: Mount NFS share
     mount:
-     path: /mnt/downloads
-     src: "192.168.68.16:/volume1/downloads"
-     fstype: nfs
-     opts: "rw,sync"
-     state: mounted
-   become: yes
+      path: /mnt/downloads
+      src: "192.168.68.16:/volume1/downloads"
+      fstype: nfs
+      opts: "rw,sync"
+      state: mounted
+    become: yes
 
   - name: install docker and docker-compose
     apt:
