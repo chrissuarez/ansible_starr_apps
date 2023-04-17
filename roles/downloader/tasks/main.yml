@@ -80,19 +80,27 @@
   shell: ansible-vault decrypt --vault-password-file /home/chris/.vault_key "{{ item }}"
     #  no_log: True
   loop:
-    - star-apps/radarr/radarr_config.xml
-    - star-apps/sonarr/sonarr_config.xml
-    - star-apps/sabnzbd/sabnzbd_config.ini
+    - files/star-apps/radarr/radarr_config.xml
+    - file/star-apps/sonarr/sonarr_config.xml
+    - files/star-apps/sabnzbd/sabnzbd_config.ini
 
 - name: Copy Star app configs
   copy:
-    src: "{{ item.src }}"
-    dest: "{{ item.dest }}"
+    src: "{{ item }}"
+    dest: "/home/simone/star-apps/"
     mode: 0644
-  loop:
-    - { src: '/home/chris/ansible_tutorial/roles/downloader/files/star-apps/radarr/radarr_config.xml', dest: '/home/simone/star-apps/radarr/config.xml' }
-    - { src: '/home/chris/ansible_tutorial/roles/downloader/files/star-apps/sonarr/sonarr_config.xml', dest: '/home/simone/star-apps/sonarr/config.xml' }
-    - { src: '/home/chris/ansible_tutorial/roles/downloader/files/star-apps/sabnzbd/sabnzbd_config.ini', dest: '/home/simone/star-apps/sabnzbd/sabnzbd.ini' }
+  loop: "{{ glob('files/star-apps/*') }}"
+
+
+#- name: Copy Star app configs
+#  copy:
+#    src: "{{ item.src }}"
+#    dest: "{{ item.dest }}"
+#    mode: 0644
+#  loop:
+#    - { src: 'files/star-apps/radarr/radarr_config.xml', dest: '/home/simone/star-apps/radarr/config.xml' }
+#    - { src: '/home/chris/ansible_tutorial/roles/downloader/files/star-apps/sonarr/sonarr_config.xml', dest: '/home/simone/star-apps/sonarr/config.xml' }
+#    - { src: '/home/chris/ansible_tutorial/roles/downloader/files/star-apps/sabnzbd/sabnzbd_config.ini', dest: '/home/simone/star-apps/sabnzbd/sabnzbd.ini' }
 
 - name: Update permissions on Star app files
   file:
