@@ -55,7 +55,7 @@
       append: yes
   - name: Create folder for docker compose
     file:
-    path: /home/chris/docker-compose
+      path: /home/chris/docker-compose
       state: directory
       owner: chris
       group: chris
