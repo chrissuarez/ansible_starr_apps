@@ -95,23 +95,23 @@
       - files/star-apps/sonarr/sonarr_config.xml
       - files/star-apps/sabnzbd/sabnzbd_config.ini
 
+#  - name: Copy Star app configs
+#    copy:
+#      src: "{{ item }}"
+#      dest: "/home/chris/star-apps/"
+#      mode: 0644
+#    loop: "{{ glob('files/star-apps/*') }}"
+
+
   - name: Copy Star app configs
     copy:
-      src: "{{ item }}"
-      dest: "/home/chris/star-apps/"
+      src: "{{ item.src }}"
+      dest: "{{ item.dest }}"
       mode: 0644
-    loop: "{{ glob('files/star-apps/*') }}"
-
-
-#- name: Copy Star app configs
-#  copy:
-#    src: "{{ item.src }}"
-#    dest: "{{ item.dest }}"
-#    mode: 0644
-#  loop:
-#    - { src: 'files/star-apps/radarr/radarr_config.xml', dest: '/home/simone/star-apps/radarr/config.xml' }
-#    - { src: '/home/chris/ansible_tutorial/roles/downloader/files/star-apps/sonarr/sonarr_config.xml', dest: '/home/simone/star-apps/sonarr/config.xml' }
-#    - { src: '/home/chris/ansible_tutorial/roles/downloader/files/star-apps/sabnzbd/sabnzbd_config.ini', dest: '/home/simone/star-apps/sabnzbd/sabnzbd.ini' }
+    loop:
+      - { src: 'files/star-apps/radarr/radarr_config.xml', dest: '/home/chris/star-apps/radarr/config.xml' }
+      - { src: 'files/star-apps/sonarr/sonarr_config.xml', dest: '/home/chris/star-apps/sonarr/config.xml' }
+      - { src: 'files/star-apps/sabnzbd/sabnzbd_config.ini', dest: '/home/chris/star-apps/sabnzbd/sabnzbd.ini' }
 
   - name: Update permissions on Star app files
     file:
