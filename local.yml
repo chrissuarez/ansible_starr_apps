@@ -92,7 +92,7 @@
     #  no_log: True
     loop:
       - files/star-apps/radarr/radarr_config.xml
-      - file/star-apps/sonarr/sonarr_config.xml
+      - files/star-apps/sonarr/sonarr_config.xml
       - files/star-apps/sabnzbd/sabnzbd_config.ini
 
   - name: Copy Star app configs
