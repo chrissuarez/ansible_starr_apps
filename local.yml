@@ -107,22 +107,24 @@
     copy:
       src: "{{ item.src }}"
       dest: "{{ item.dest }}"
+      owner: chris
+      group: chris
       mode: 0644
     loop:
       - { src: 'files/star-apps/radarr/radarr_config.xml', dest: '/home/chris/star-apps/radarr/config.xml' }
       - { src: 'files/star-apps/sonarr/sonarr_config.xml', dest: '/home/chris/star-apps/sonarr/config.xml' }
       - { src: 'files/star-apps/sabnzbd/sabnzbd_config.ini', dest: '/home/chris/star-apps/sabnzbd/sabnzbd.ini' }
 
-  - name: Update permissions on Star app files
-    file:
-      path: "{{ item }}"
-      owner: chris
-      group: chris
-      mode: 0644
-    loop:
-      - /home/chris/star-apps/radarr/config.xml
-      - /home/chris/star-apps/sonarr/config.xml
-      - /home/chris/star-apps/sabnzbd/sabnzbd.ini
+        #  - name: Update permissions on Star app files
+        #    file:
+        #      path: "{{ item }}"
+        #      owner: chris
+        #      group: chris
+        #      mode: 0644
+        #    loop:
+        #      - /home/chris/star-apps/radarr/config.xml
+        #      - /home/chris/star-apps/sonarr/config.xml
+        #      - /home/chris/star-apps/sabnzbd/sabnzbd.ini
 
   - name: Start service
     command: docker-compose up -d
