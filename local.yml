@@ -91,9 +91,9 @@
     shell: ansible-vault decrypt --vault-password-file /home/chris/.vault_key "{{ item }}"
     #  no_log: True
     loop:
-      - files/star-apps/radarr/radarr_config.xml
-      - files/star-apps/sonarr/sonarr_config.xml
-      - files/star-apps/sabnzbd/sabnzbd_config.ini
+      - /home/chris/star-apps/radarr/radarr_config.xml
+      - /home/chris/star-apps/sonarr/sonarr_config.xml
+      - /home/chris/star-apps/sabnzbd/sabnzbd_config.ini
 
 #  - name: Copy Star app configs
 #    copy:
@@ -111,9 +111,9 @@
       group: chris
       mode: 0644
     loop:
-      - { src: 'files/star-apps/radarr/radarr_config.xml', dest: '/home/chris/star-apps/radarr/config.xml' }
-      - { src: 'files/star-apps/sonarr/sonarr_config.xml', dest: '/home/chris/star-apps/sonarr/config.xml' }
-      - { src: 'files/star-apps/sabnzbd/sabnzbd_config.ini', dest: '/home/chris/star-apps/sabnzbd/sabnzbd.ini' }
+      - { src: '/home/chris/star-apps/radarr/radarr_config.xml', dest: '/home/chris/star-apps/radarr/config.xml' }
+      - { src: '/home/chris/star-apps/sonarr/sonarr_config.xml', dest: '/home/chris/star-apps/sonarr/config.xml' }
+      - { src: '/homechris/star-apps/sabnzbd/sabnzbd_config.ini', dest: '/home/chris/star-apps/sabnzbd/sabnzbd.ini' }
 
         #  - name: Update permissions on Star app files
         #    file:
