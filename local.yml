@@ -95,12 +95,17 @@
       - /home/chris/star-apps/sonarr/sonarr_config.xml
       - /home/chris/star-apps/sabnzbd/sabnzbd_config.ini
 
-#  - name: Copy Star app configs
-#    copy:
-#      src: "{{ item }}"
-#      dest: "/home/chris/star-apps/"
-#      mode: 0644
-#    loop: "{{ glob('files/star-apps/*') }}"
+
+  - name: Update permissions on Star app files
+    file:
+      path: "{{ item }}"
+      owner: chris
+      group: chris
+      mode: 0644
+    loop:
+      - /home/chris/star-apps/radarr/radarr_config.xml
+      - /home/chris/star-apps/sonarr/sonarr_config.xml
+      - /home/chris/star-apps/sabnzbd/sabnzbd_config.ini
 
 
   - name: Copy Star app configs
