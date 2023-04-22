@@ -37,19 +37,23 @@
             line: "192.168.68.16:/volume1/downloads /mnt/downloads nfs rw,sync 0 0"
             state: present
             create: yes
+          become: yes
 
-        - name: Create and mount NFS share
+        - name: Create NFS share mount point
           file:
             path: /mnt/downloads
             state: directory
             mode: 0777
+          become: yes
+
+        - name: Mount NFS share
           mount:
             path: /mnt/downloads
             src: "192.168.68.16:/volume1/downloads"
             fstype: nfs
             opts: "rw,sync"
             state: mounted
-      become: yes
+          become: yes
 
     - name: Add Docker user to sudo group
       user:
