@@ -131,3 +131,9 @@
             group: "{{ docker_user }}"
             mode: 0644
 
+    - name: Start or restart Docker Compose services
+      docker_compose:
+        project_src: "/home/{{ docker_user }}/docker-compose"
+        state: present
+        restarted: yes
+        remove_orphans: yes
