@@ -12,8 +12,8 @@ services:
     ports:
       - 7878:7878
     environment:
-      - PUID=1001
-      - PGID=1001
+      - PUID=1000
+      - PGID=1000
       - UMASK=002
       - TZ=Europe/London
     volumes:
@@ -32,8 +32,8 @@ services:
     ports:
       - 8989:8989
     environment:
-      - PUID=1001
-      - PGID=1001
+      - PUID=1000
+      - PGID=1000
       - UMASK=022
       - TZ=Europe/London
     volumes:
@@ -52,8 +52,8 @@ services:
     ports:
       - 8080:8080
     environment:
-      - PUID=1001
-      - PGID=1001
+      - PUID=1000
+      - PGID=1000
       - UMSAK=022
       - TZ=Europe/London
     volumes:
