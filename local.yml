@@ -94,7 +94,7 @@
 
         - name: Decrypt Star Config Files
           ansible.builtin.command: ansible-vault decrypt --vault-password-file /home/{{ docker_user }}/.vault_key {{ item }}
-          loop: "{{ star_apps | map(attribute='config') | map('regex_replace', '(.*)', '/home/' + docker_user + '/star-apps/\\1') | list }}"
+          loop: "{{ star_apps | map(attribute='config') | map('regex_replace', '(.*)', '/home/' + docker_user + '/star-apps/' + item.name + '/\\1') | list }}"
 
         - name: Update permissions on Star app files
           file:
