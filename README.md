@@ -1,3 +1,11 @@
-# ansible_tutorial
+# Ansible Starr Apps
 
-Ansible is great!
+Installs
+
+- Radarr
+- Sonarr
+- Sabnzbd
+- Notifarr
+
+
+Make sure to have .vault_key in the root of the user directory
