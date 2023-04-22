@@ -1,137 +1,101 @@
 ---
 - hosts: localhost
   become: true
-  pre_tasks:
+  vars:
+    docker_user: chris
+    star_apps:
+      - name: radarr
+        config: radarr_config.xml
+      - name: sonarr
+        config: sonarr_config.xml
+      - name: sabnzbd
+        config: sabnzbd_config.ini
 
-  - name: update repository index (Ubuntu)
-    apt:
-      update_cache: yes
-    changed_when: false
-    when: ansible_distribution == "Ubuntu"
+  pre_tasks:
+    - name: Update repository index (Ubuntu)
+      apt:
+        update_cache: yes
+      changed_when: false
+      when: ansible_distribution == "Ubuntu"
 
   tasks:
-  - name: Install NFS client package
-    apt:
-      name: nfs-common
-      state: present
-    become: yes
-
-  - name: Add NFS mount to fstab
-    lineinfile:
-      path: /etc/fstab
-      line: "192.168.68.16:/volume1/downloads /mnt/downloads nfs rw,sync 0 0"
-      state: present
-      create: yes
-    become: yes
-
-  - name: Create mount point
-    file:
-      path: /mnt/downloads
-      state: directory
-      mode: 0777
-    become: yes
-
-  - name: Mount NFS share
-    mount:
-      path: /mnt/downloads
-      src: "192.168.68.16:/volume1/downloads"
-      fstype: nfs
-      opts: "rw,sync"
-      state: mounted
-    become: yes
-
-  - name: install docker and docker-compose
-    apt:
-      name:
+    - name: Install required packages
+      apt:
+        name: "{{ item }}"
+        state: present
+      loop:
+        - nfs-common
         - docker.io
         - docker-compose
-      state: present
-    become: yes
+      become: yes
 
-  - name: Add Docker user to sudo group
-    user:
-      name: docker
-      groups: sudo
-      append: yes
-  - name: Create folder for docker compose
-    file:
-      path: /home/chris/docker-compose
-      state: directory
-      owner: chris
-      group: chris
-      mode: 0755
+    - name: Configure NFS
+      block:
+        - name: Add NFS mount to fstab
+          lineinfile:
+            path: /etc/fstab
+            line: "192.168.68.16:/volume1/downloads /mnt/downloads nfs rw,sync 0 0"
+            state: present
+            create: yes
 
-  - name: copy docker-compose file
-    copy:
-      src: files/docker-compose.yml
-      dest: /home/chris/docker-compose/docker-compose.yml
-      owner: chris
-      group: chris
-      mode: 0644
+        - name: Create and mount NFS share
+          file:
+            path: /mnt/downloads
+            state: directory
+            mode: 0777
+          mount:
+            path: /mnt/downloads
+            src: "192.168.68.16:/volume1/downloads"
+            fstype: nfs
+            opts: "rw,sync"
+            state: mounted
+      become: yes
 
-  - name: Create Star Apps folder
-    file:
-      path: /home/chris/star-apps
-      state: directory
-      recurse: yes
-      owner: chris
-      group: chris
-      mode: 0755
+    - name: Add Docker user to sudo group
+      user:
+        name: "{{ docker_user }}"
+        groups: sudo
+        append: yes
 
-  - name: Copy Starr App Config Files
-    copy:
-      src: files/star-apps/
-      dest: /home/chris/star-apps/
-      owner: chris
-      group: chris
-      mode: 0775
-      remote_src: true
+    - name: Create required directories
+      file:
+        path: "{{ item }}"
+        state: directory
+        owner: "{{ docker_user }}"
+        group: "{{ docker_user }}"
+        mode: 0755
+      loop:
+        - /home/{{ docker_user }}/docker-compose
+        - /home/{{ docker_user }}/star-apps
 
-  - name: Decrypt Star Config Files
-    shell: ansible-vault decrypt --vault-password-file /home/chris/.vault_key "{{ item }}"
-    #  no_log: True
-    loop:
-      - /home/chris/star-apps/radarr/radarr_config.xml
-      - /home/chris/star-apps/sonarr/sonarr_config.xml
-      - /home/chris/star-apps/sabnzbd/sabnzbd_config.ini
+    - name: Copy docker-compose file
+      copy:
+        src: files/docker-compose.yml
+        dest: /home/{{ docker_user }}/docker-compose/docker-compose.yml
+        owner: "{{ docker_user }}"
+        group: "{{ docker_user }}"
+        mode: 0644
 
+    - name: Copy and decrypt Star App configs
+      block:
+        - name: Copy Star App Config Files
+          copy:
+            src: files/star-apps/{{ item.name }}/{{ item.config }}
+            dest: /home/{{ docker_user }}/star-apps/{{ item.name }}/{{ item.config }}
+            owner: "{{ docker_user }}"
+            group: "{{ docker_user }}"
+            mode: 0775
+          loop: "{{ star_apps }}"
 
-  - name: Update permissions on Star app files
-    file:
-      path: "{{ item }}"
-      owner: chris
-      group: chris
-      mode: 0644
-    loop:
-      - /home/chris/star-apps/radarr/radarr_config.xml
-      - /home/chris/star-apps/sonarr/sonarr_config.xml
-      - /home/chris/star-apps/sabnzbd/sabnzbd_config.ini
+        - name: Decrypt Star Config Files
+          ansible.builtin.command: ansible-vault decrypt --vault-password-file /home/{{ docker_user }}/.vault_key {{ item }}
+          loop: "{{ star_apps | map(attribute='config') | map('regex_replace', '(.*)', '/home/" + docker_user + "/star-apps/\\1') | list }}"
 
+        - name: Update permissions on Star app files
+          file:
+            path: "/home/{{ docker_user }}/star-apps/{{ item.name }}/{{ item.config }}"
+            owner: "{{ docker_user }}"
+            group: "{{ docker_user }}"
+            mode: 0644
+          loop: "{{ star_apps }}"
 
-  - name: Copy Star app configs
-    copy:
-      src: "{{ item.src }}"
-      dest: "{{ item.dest }}"
-      owner: chris
-      group: chris
-      mode: 0644
-    loop:
-      - { src: '/home/chris/star-apps/radarr/radarr_config.xml', dest: '/home/chris/star-apps/radarr/config.xml' }
-      - { src: '/home/chris/star-apps/sonarr/sonarr_config.xml', dest: '/home/chris/star-apps/sonarr/config.xml' }
-      - { src: '/home/chris/star-apps/sabnzbd/sabnzbd_config.ini', dest: '/home/chris/star-apps/sabnzbd/sabnzbd.ini' }
-
-        #  - name: Update permissions on Star app files
-        #    file:
-        #      path: "{{ item }}"
-        #      owner: chris
-        #      group: chris
-        #      mode: 0644
-        #    loop:
-        #      - /home/chris/star-apps/radarr/config.xml
-        #      - /home/chris/star-apps/sonarr/config.xml
-        #      - /home/chris/star-apps/sabnzbd/sabnzbd.ini
-
-  - name: Start service
-    command: docker-compose up -d
-    args:
-      chdir: /home/chris/docker-compose
