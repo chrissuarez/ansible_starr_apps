@@ -6,7 +6,7 @@
     star_apps:
       - name: radarr
         config: radarr_config.xml
-        db: radarr-config.db.vault
+        db: radarr-config.db
       - name: sonarr
         config: sonarr_config.xml
       - name: sabnzbd
