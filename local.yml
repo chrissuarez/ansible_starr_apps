@@ -84,7 +84,7 @@
       block:
         - name: Copy encrypted Star App Config Files
           copy:
-            src: "/files/star-apps/{{ item.name }}/{{ item.config }}"
+            src: "files/star-apps/{{ item.name }}/{{ item.config }}"
             dest: /home/{{ docker_user }}/star-apps/{{ item.name }}/{{ item.config }}
             owner: "{{ docker_user }}"
             group: "{{ docker_user }}"
