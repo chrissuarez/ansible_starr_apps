@@ -125,6 +125,11 @@
         - name: Decrypt Radarr DB file
           ansible.builtin.command: ansible-vault decrypt --vault-password-file /home/{{ docker_user }}/.vault_key --output /home/{{ docker_user }}/star-apps/radarr/radarr.db /home/{{ docker_user }}/star-apps/radarr/{{ star_apps[0].db }}
 
+        - name: Remove encrypted Radarr DB file
+          ansible.builtin.file:
+            path: "/home/{{ docker_user }}/star-apps/radarr/{{ star_apps[0].db }}"
+            state: absent
+
         - name: Update permissions on Star app files
           file:
             path: "/home/{{ docker_user }}/star-apps/{{ item.name }}/{{ item.config }}"
