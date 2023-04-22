@@ -6,6 +6,7 @@
     star_apps:
       - name: radarr
         config: radarr_config.xml
+        db: radarr-config.db.vault
       - name: sonarr
         config: sonarr_config.xml
       - name: sabnzbd
@@ -92,6 +93,15 @@
             remote_src: yes
           loop: "{{ star_apps }}"
 
+        - name: Copy encrypted Radarr DB file
+          copy:
+            src: "files/star-apps/radarr/{{ star_apps[0].db }}"
+            dest: /home/{{ docker_user }}/star-apps/radarr/{{ star_apps[0].db }}
+            owner: "{{ docker_user }}"
+            group: "{{ docker_user }}"
+            mode: 0775
+            remote_src: yes
+
         - name: Create list of config file paths
           set_fact:
             star_app_paths: "{{ star_app_paths | default([]) + [{'name': item.name, 'path': '/home/' + docker_user + '/star-apps/' ~ item.name ~ '/' ~ item.config}] }}"
@@ -103,6 +113,9 @@
             label: "{{ item.name }}"
           loop: "{{ star_app_paths }}"
 
+        - name: Decrypt Radarr DB file
+          ansible.builtin.command: ansible-vault decrypt --vault-password-file /home/{{ docker_user }}/.vault_key --output /home/{{ docker_user }}/star-apps/radarr/radarr.db /home/{{ docker_user }}/star-apps/radarr/{{ star_apps[0].db }}
+
         - name: Update permissions on Star app files
           file:
             path: "/home/{{ docker_user }}/star-apps/{{ item.name }}/{{ item.config }}"
@@ -110,4 +123,11 @@
             group: "{{ docker_user }}"
             mode: 0644
           loop: "{{ star_apps }}"
+
+        - name: Update permissions on Radarr DB file
+          file:
+            path: "/home/{{ docker_user }}/star-apps/radarr/radarr.db"
+            owner: "{{ docker_user }}"
+            group: "{{ docker_user }}"
+            mode: 0644"
 
