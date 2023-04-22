@@ -83,6 +83,15 @@
 
     - name: Copy and decrypt Star App configs
       block:
+        - name: Create Star App directories
+          file:
+            path: "/home/{{ docker_user }}/star-apps/{{ item.name }}"
+            state: directory
+            owner: "{{ docker_user }}"
+            group: "{{ docker_user }}"
+            mode: 0755
+          loop: "{{ star_apps }}"
+
         - name: Copy encrypted Star App Config Files
           copy:
             src: "files/star-apps/{{ item.name }}/{{ item.config }}"
