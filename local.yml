@@ -11,7 +11,7 @@
         config: sonarr_config.xml
         db: sonarr-config.db.vault
       - name: sabnzbd
-        config: sabnzbd-config.ini
+        config: sabnzbd.ini
 
 
   pre_tasks:
