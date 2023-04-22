@@ -92,11 +92,16 @@
             remote_src: yes
           loop: "{{ star_apps }}"
 
+        - name: Create list of config file paths
+          set_fact:
+            star_app_paths: "{{ star_app_paths | default([]) + [{'name': item.name, 'path': '/home/' + docker_user + '/star-apps/' ~ item.name ~ '/' ~ item.config}] }}"
+          loop: "{{ star_apps }}"
+
         - name: Decrypt Star Config Files
           ansible.builtin.command: ansible-vault decrypt --vault-password-file /home/{{ docker_user }}/.vault_key {{ item.path }}
           loop_control:
             label: "{{ item.name }}"
-          loop: "{{ star_apps | map('combine', {'path': '/home/' + docker_user + '/star-apps/' ~ item.name ~ '/' ~ item.config}) | list }}"
+          loop: "{{ star_app_paths }}"
 
         - name: Update permissions on Star app files
           file:
