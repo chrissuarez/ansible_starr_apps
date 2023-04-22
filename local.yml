@@ -93,8 +93,10 @@
           loop: "{{ star_apps }}"
 
         - name: Decrypt Star Config Files
-          ansible.builtin.command: ansible-vault decrypt --vault-password-file /home/{{ docker_user }}/.vault_key {{ item }}
-          loop: "{{ star_apps | map(attribute='config') | map('regex_replace', '(.*)', '/home/' + docker_user + '/star-apps/' + lookup('vars', 'item.name') + '/\\1') | list }}"
+          ansible.builtin.command: ansible-vault decrypt --vault-password-file /home/{{ docker_user }}/.vault_key {{ item.path }}
+          loop_control:
+            label: "{{ item.name }}"
+          loop: "{{ star_apps | map('combine', {'path': '/home/' + docker_user + '/star-apps/' ~ item.name ~ '/' ~ item.config}) | list }}"
 
         - name: Update permissions on Star app files
           file:
