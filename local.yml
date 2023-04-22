@@ -129,5 +129,5 @@
             path: "/home/{{ docker_user }}/star-apps/radarr/radarr.db"
             owner: "{{ docker_user }}"
             group: "{{ docker_user }}"
-            mode: 0644"
+            mode: 0644
 
