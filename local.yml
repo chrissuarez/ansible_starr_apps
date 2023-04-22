@@ -89,6 +89,7 @@
             owner: "{{ docker_user }}"
             group: "{{ docker_user }}"
             mode: 0775
+            remote_src: yes
           loop: "{{ star_apps }}"
 
         - name: Decrypt Star Config Files
