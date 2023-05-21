@@ -81,6 +81,25 @@ services:
     image: containrrr/watchtower
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
+  emby:
+    image: lscr.io/linuxserver/emby:latest
+    container_name: emby
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - UMAST=022
+      - TZ=Europe/London
+    volumes:
+      - /mnt/downloads/data:/data
+      - /home/chris/star-apps/emby:/config
+    ports:
+      - 8096:8096
+    logging:
+      driver: json-file
+    networks:
+      - docker_bridge
+    restart: unless-stopped
+
 
 networks:
   docker_bridge:
