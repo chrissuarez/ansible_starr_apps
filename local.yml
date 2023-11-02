@@ -30,6 +30,7 @@
         - nfs-common
         - docker.io
         - docker-compose
+        - smbclient
       become: yes
 
     - name: Configure NFS
@@ -37,7 +38,7 @@
         - name: Add NFS mount to fstab
           lineinfile:
             path: /etc/fstab
-            line: "192.168.68.16:/volume1/downloads /mnt/downloads nfs rw,sync 0 0"
+            line: "//192.168.68.132/data /mnt/downloads/data cifs credentials=/etc/smbcredentials,uid=1000,gid=1000,file_mode=0775,dir_mode=0775 0 0"
             state: present
             create: yes
           become: yes
@@ -51,8 +52,8 @@
 
         - name: Mount NFS share
           mount:
-            path: /mnt/downloads
-            src: "192.168.68.16:/volume1/downloads"
+            path: /mnt/downloads/data
+            src: "//192.168.68.132/data"
             fstype: nfs
             opts: "rw,sync"
             state: mounted
