@@ -41,7 +41,27 @@ services:
       - /home/chris/star-apps/sonarr:/config
       - /mnt/downloads/data:/data
 
-  nzbget:
+  sonarr-4:
+    container_name: sonarr-v4
+    image: cr.hotio.dev/hotio/sonarr:nightly
+    restart: unless-stopped
+    logging:
+      driver: json-file
+    networks:
+      - docker_bridge
+    ports:
+      - 8990:8989
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - UMASK=022
+      - TZ=Europe/London
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - /home/chris/star-apps/sonarr-v4:/config
+      - /mnt/downloads/data:/data
+      
+  sabnzb:
     container_name: sabnzbd
     image: cr.hotio.dev/hotio/sabnzbd
     restart: unless-stopped
@@ -81,6 +101,10 @@ services:
     image: containrrr/watchtower
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      - WATCHTOWER_CLEANUP=true
+      - WATCHTOWER_POLL_INTERVAL=300
+      
   emby:
     image: lscr.io/linuxserver/emby:latest
     container_name: emby
@@ -100,6 +124,24 @@ services:
       - docker_bridge
     restart: unless-stopped
 
+  bazarr:
+    image: lscr.io/linuxserver/bazarr:latest
+    container_name: bazarr
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - UMASK=022
+      - TZ=Europe/London
+    volumes:
+      - /home/chris/star-apps/bazarr:/config
+      - /mnt/downloads/data:/data
+    ports:
+      - 6767:6767
+    restart: unless-stopped
+    logging:
+      driver: json-file
+    networks:
+      - docker_bridge
 
 networks:
   docker_bridge:
