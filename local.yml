@@ -92,7 +92,7 @@
         - name: Copy encrypted Star App Config Files
           copy:
             src: "files/star-apps/{{ item.name }}/{{ item.config }}"
-            dest: /home/{{ docker_user }}/star-apps/{{ item.name }}/{{ item.config }}"
+            dest: "/home/{{ docker_user }}/star-apps/{{ item.name }}/{{ item.config }}"
             owner: "{{ docker_user }}"
             group: "{{ docker_user }}"
             mode: 0775
@@ -102,7 +102,7 @@
         - name: Copy encrypted Radarr DB file
           copy:
             src: "files/star-apps/radarr/{{ star_apps[0].db }}"
-            dest: /home/{{ docker_user }}/star-apps/radarr/{{ star_apps[0].db }}"
+            dest: "/home/{{ docker_user }}/star-apps/radarr/{{ star_apps[0].db }}"
             owner: "{{ docker_user }}"
             group: "{{ docker_user }}"
             mode: 0775
