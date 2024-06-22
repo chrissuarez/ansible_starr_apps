@@ -13,7 +13,6 @@
       - name: sabnzbd
         config: sabnzbd.ini
 
-
   pre_tasks:
     - name: Update repository index (Ubuntu)
       apt:
@@ -30,7 +29,6 @@
         - nfs-common
         - docker.io
         - docker-compose
-      become: yes
 
     - name: Configure NFS
       block:
@@ -40,14 +38,12 @@
             line: "192.168.68.132:/mnt/storage/data /mnt/downloads/data nfs rw,sync 0 0"
             state: present
             create: yes
-          become: yes
 
         - name: Create NFS share mount point
           file:
             path: /mnt/downloads/data 
             state: directory
             mode: 0777
-          become: yes
 
         - name: Mount NFS share
           mount:
@@ -56,7 +52,6 @@
             fstype: nfs
             opts: "rw,sync"
             state: mounted
-          become: yes
 
     - name: Add Docker user to sudo group
       user:
@@ -97,7 +92,7 @@
         - name: Copy encrypted Star App Config Files
           copy:
             src: "files/star-apps/{{ item.name }}/{{ item.config }}"
-            dest: /home/{{ docker_user }}/star-apps/{{ item.name }}/{{ item.config }}
+            dest: /home/{{ docker_user }}/star-apps/{{ item.name }}/{{ item.config }}"
             owner: "{{ docker_user }}"
             group: "{{ docker_user }}"
             mode: 0775
@@ -107,7 +102,7 @@
         - name: Copy encrypted Radarr DB file
           copy:
             src: "files/star-apps/radarr/{{ star_apps[0].db }}"
-            dest: /home/{{ docker_user }}/star-apps/radarr/{{ star_apps[0].db }}
+            dest: /home/{{ docker_user }}/star-apps/radarr/{{ star_apps[0].db }}"
             owner: "{{ docker_user }}"
             group: "{{ docker_user }}"
             mode: 0775
