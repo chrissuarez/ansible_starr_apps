@@ -37,7 +37,7 @@
         - name: Add NFS mount to fstab
           lineinfile:
             path: /etc/fstab
-            line: "192.168.68.16:/volume1/downloads /mnt/downloads nfs rw,sync 0 0"
+            line: "192.168.68.132:/data /mnt/downloads nfs rw,sync 0 0"
             state: present
             create: yes
           become: yes
