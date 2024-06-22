@@ -44,7 +44,7 @@
 
         - name: Create NFS share mount point
           file:
-            path: /mnt/downloads
+            path: /mnt/downloads/data 
             state: directory
             mode: 0777
           become: yes
@@ -52,7 +52,7 @@
         - name: Mount NFS share
           mount:
             path: /mnt/downloads
-            src: "192.168.68.16:/volume1/downloads"
+            src: "192.168.68.132:/data"
             fstype: nfs
             opts: "rw,sync"
             state: mounted
