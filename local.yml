@@ -44,7 +44,6 @@
             path: /mnt/downloads/data 
             state: directory
             mode: 0777
-            become: true
 
         - name: Mount NFS share
           mount:
