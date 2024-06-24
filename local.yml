@@ -32,18 +32,20 @@
 
     - name: Configure CIFS
       block:
+        - name: Ensure CIFS mount point exists
+          file:
+            path: /mnt/downloads/data
+            state: directory
+            mode: '0775'
+    
+    - name: Configure CIFS
+      block:
         - name: Add CIFS mount to fstab
           lineinfile:
             path: /etc/fstab
             line: "//192.168.68.132/data /mnt/downloads/data cifs credentials=/etc/smbcredentials,iocharset=utf8,uid=1000,gid=1000,file_mode=0775,dir_mode=0775 0 0"
             state: present
             create: yes
-
-    - name: Create CIFS share mount point
-      file:
-        path: /mnt/downloads/data
-        state: directory
-        mode: 0775
 
     - name: Mount CIFS share
       command: mount -a
