@@ -3,7 +3,7 @@ version: "3.2"
 services:
   radarr:
     container_name: radarr
-    image: cr.hotio.dev/hotio/radarr:latest
+    image: ghcr.io/hotio/radarr:latest
     restart: unless-stopped
     logging:
       driver: json-file
@@ -23,7 +23,7 @@ services:
 
   sonarr:
     container_name: sonarr
-    image: cr.hotio.dev/hotio/sonarr:latest
+    image: ghcr.io/hotio/sonarr:latest
     restart: unless-stopped
     logging:
       driver: json-file
@@ -41,9 +41,9 @@ services:
       - /home/chris/star-apps/sonarr:/config
       - /mnt/downloads/data:/data
 
-  nzbget:
+  sabnzbd:
     container_name: sabnzbd
-    image: cr.hotio.dev/hotio/sabnzbd
+    image: ghcr.io/hotio/sabnzbd
     restart: unless-stopped
     logging:
       driver: json-file
@@ -81,19 +81,25 @@ services:
     image: containrrr/watchtower
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      - WATCHTOWER_CLEANUP=true
+      - WATCHTOWER_POLL_INTERVAL=300
+  
   emby:
     image: lscr.io/linuxserver/emby:latest
     container_name: emby
     environment:
       - PUID=1000
       - PGID=1000
-      - UMAST=022
+      - UMASK=022
       - TZ=Europe/London
     volumes:
+      - /home/chris/star-apps/emby/certs:/certs
       - /mnt/downloads/data:/data
       - /home/chris/star-apps/emby:/config
     ports:
       - 8096:8096
+      - 8920:8920
     logging:
       driver: json-file
     networks:
