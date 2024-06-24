@@ -26,7 +26,8 @@
         name: "{{ item }}"
         state: present
       loop:
-        - nfs-common
+        - cifs-utils
+        # - nfs-common
         - docker.io
         - docker-compose
 
