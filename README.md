@@ -10,9 +10,13 @@ Installs
 - Emby
 
 
-Make sure to have <a "https://drive.google.com/file/d/1SzJ4i4qODXm9pK1EFCQzQXllx-Wia0lf/view?usp=sharing">.vault_key</a> in the root of the user directory
+Make sure to have .vault_key in the root of the user directory
 
-create a creds file: <a "https://drive.google.com/file/d/17pS3NRPu3mXCTcOrXQHWtjgDRqFcVl6W/view?usp=drive_link">/etc/sbmcredentials</a>
+https://drive.google.com/file/d/1SzJ4i4qODXm9pK1EFCQzQXllx-Wia0lf/view?usp=sharing
+
+create a creds file: /etc/sbmcredentials
+
+https://drive.google.com/file/d/17pS3NRPu3mXCTcOrXQHWtjgDRqFcVl6W/view?usp=drive_link
 
 
 Run with
