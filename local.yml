@@ -3,15 +3,15 @@
   become: true
   vars:
     docker_user: chris
-    star_apps:
-      - name: radarr
-        config: radarr_config.xml
-        db: radarr-config.db.vault
-      - name: sonarr
-        config: sonarr_config.xml
-        db: sonarr-config.db.vault
-      - name: sabnzbd
-        config: sabnzbd.ini
+#    star_apps:
+#      - name: radarr
+#        config: radarr_config.xml
+#        db: radarr-config.db.vault
+#      - name: sonarr
+#        config: sonarr_config.xml
+#        db: sonarr-config.db.vault
+#      - name: sabnzbd
+#        config: sabnzbd.ini
 
   pre_tasks:
     - name: Update repository index (Ubuntu)
@@ -66,7 +66,7 @@
         mode: 0755
       loop:
         - /home/{{ docker_user }}/docker-compose
-        - /home/{{ docker_user }}/star-apps
+#        - /home/{{ docker_user }}/star-apps
 
     - name: Copy docker-compose file
       copy:
@@ -76,97 +76,97 @@
         group: "{{ docker_user }}"
         mode: 0644
 
-    - name: Copy and decrypt Star App configs
-      block:
-        - name: Create Star App directories
-          file:
-            path: "/home/{{ docker_user }}/star-apps/{{ item.name }}"
-            state: directory
-            owner: "{{ docker_user }}"
-            group: "{{ docker_user }}"
-            mode: 0755
-          loop: "{{ star_apps }}"
+#    - name: Copy and decrypt Star App configs
+#      block:
+#        - name: Create Star App directories
+#          file:
+#            path: "/home/{{ docker_user }}/star-apps/{{ item.name }}"
+#            state: directory
+#            owner: "{{ docker_user }}"
+#            group: "{{ docker_user }}"
+#            mode: 0755
+#          loop: "{{ star_apps }}"
 
-        - name: Copy encrypted Star App Config Files
-          copy:
-            src: "files/star-apps/{{ item.name }}/{{ item.config }}"
-            dest: "/home/{{ docker_user }}/star-apps/{{ item.name }}/{{ item.config }}"
-            owner: "{{ docker_user }}"
-            group: "{{ docker_user }}"
-            mode: 0775
-            remote_src: yes
-          loop: "{{ star_apps }}"
+#        - name: Copy encrypted Star App Config Files
+#          copy:
+#            src: "files/star-apps/{{ item.name }}/{{ item.config }}"
+#            dest: "/home/{{ docker_user }}/star-apps/{{ item.name }}/{{ item.config }}"
+#            owner: "{{ docker_user }}"
+#            group: "{{ docker_user }}"
+#            mode: 0775
+#            remote_src: yes
+#          loop: "{{ star_apps }}"
 
-        - name: Copy encrypted Radarr DB file
-          copy:
-            src: "files/star-apps/radarr/{{ star_apps[0].db }}"
-            dest: "/home/{{ docker_user }}/star-apps/radarr/{{ star_apps[0].db }}"
-            owner: "{{ docker_user }}"
-            group: "{{ docker_user }}"
-            mode: 0775
-            remote_src: yes
+#        - name: Copy encrypted Radarr DB file
+#          copy:
+#            src: "files/star-apps/radarr/{{ star_apps[0].db }}"
+#            dest: "/home/{{ docker_user }}/star-apps/radarr/{{ star_apps[0].db }}"
+#            owner: "{{ docker_user }}"
+#            group: "{{ docker_user }}"
+#            mode: 0775
+#            remote_src: yes
 
-        - name: Copy encrypted Sonarr DB file
-          copy:
-            src: "files/star-apps/sonarr/{{ star_apps[1].db }}"
-            dest: "/home/{{ docker_user }}/star-apps/sonarr/{{ star_apps[1].db }}"
-            owner: "{{ docker_user }}"
-            group: "{{ docker_user }}"
-            mode: 0775
-            remote_src: yes
+#        - name: Copy encrypted Sonarr DB file
+#          copy:
+#            src: "files/star-apps/sonarr/{{ star_apps[1].db }}"
+#            dest: "/home/{{ docker_user }}/star-apps/sonarr/{{ star_apps[1].db }}"
+#            owner: "{{ docker_user }}"
+#            group: "{{ docker_user }}"
+#            mode: 0775
+#            remote_src: yes
 
-        - name: Create list of config file paths
-          set_fact:
-            star_app_paths: "{{ star_app_paths | default([]) + [{'name': item.name, 'path': '/home/' + docker_user + '/star-apps/' ~ item.name ~ '/' ~ item.config}] }}"
-          loop: "{{ star_apps }}"
+#        - name: Create list of config file paths
+#          set_fact:
+#            star_app_paths: "{{ star_app_paths | default([]) + [{'name': item.name, 'path': '/home/' + docker_user + '/star-apps/' ~ item.name ~ '/' ~ item.config}] }}"
+#          loop: "{{ star_apps }}"
 
-        - name: Decrypt Star Config Files
-          ansible.builtin.command: ansible-vault decrypt --vault-password-file /home/{{ docker_user }}/.vault_key {{ item.path }}
-          loop_control:
-            label: "{{ item.name }}"
-          loop: "{{ star_app_paths }}"
+#        - name: Decrypt Star Config Files
+#          ansible.builtin.command: ansible-vault decrypt --vault-password-file /home/{{ docker_user }}/.vault_key {{ item.path }}
+#          loop_control:
+#            label: "{{ item.name }}"
+#          loop: "{{ star_app_paths }}"
 
-        - name: Decrypt Radarr DB file
-          ansible.builtin.command: ansible-vault decrypt --vault-password-file /home/{{ docker_user }}/.vault_key --output /home/{{ docker_user }}/star-apps/radarr/radarr.db /home/{{ docker_user }}/star-apps/radarr/{{ star_apps[0].db }}
+#        - name: Decrypt Radarr DB file
+#          ansible.builtin.command: ansible-vault decrypt --vault-password-file /home/{{ docker_user }}/.vault_key --output /home/{{ docker_user }}/star-apps/radarr/radarr.db /home/{{ docker_user }}/star-apps/radarr/{{ star_apps[0].db }}
 
-        - name: Remove encrypted Radarr DB file
-          ansible.builtin.file:
-            path: "/home/{{ docker_user }}/star-apps/radarr/{{ star_apps[0].db }}"
-            state: absent
+#        - name: Remove encrypted Radarr DB file
+#          ansible.builtin.file:
+#            path: "/home/{{ docker_user }}/star-apps/radarr/{{ star_apps[0].db }}"
+#            state: absent
 
-        - name: Decrypt Sonarr DB file
-          ansible.builtin.command: ansible-vault decrypt --vault-password-file /home/{{ docker_user }}/.vault_key --output /home/{{ docker_user }}/star-apps/sonarr/sonarr.db /home/{{ docker_user }}/star-apps/sonarr/{{ star_apps[1].db }}
+#        - name: Decrypt Sonarr DB file
+#          ansible.builtin.command: ansible-vault decrypt --vault-password-file /home/{{ docker_user }}/.vault_key --output /home/{{ docker_user }}/star-apps/sonarr/sonarr.db /home/{{ docker_user }}/star-apps/sonarr/{{ star_apps[1].db }}
 
-        - name: Remove encrypted Sonarr DB file
-          ansible.builtin.file:
-            path: "/home/{{ docker_user }}/star-apps/sonarr/{{ star_apps[1].db }}"
-            state: absent
+#        - name: Remove encrypted Sonarr DB file
+#          ansible.builtin.file:
+#            path: "/home/{{ docker_user }}/star-apps/sonarr/{{ star_apps[1].db }}"
+#            state: absent
 
-        - name: Update permissions on Star app files
-          file:
-            path: "/home/{{ docker_user }}/star-apps/{{ item.name }}/{{ item.config }}"
-            owner: "{{ docker_user }}"
-            group: "{{ docker_user }}"
-            mode: 0644
-          loop: "{{ star_apps }}"
+#        - name: Update permissions on Star app files
+#          file:
+#            path: "/home/{{ docker_user }}/star-apps/{{ item.name }}/{{ item.config }}"
+#            owner: "{{ docker_user }}"
+#            group: "{{ docker_user }}"
+#            mode: 0644
+#          loop: "{{ star_apps }}"
 
-        - name: Update permissions on Radarr DB file
-          file:
-            path: "/home/{{ docker_user }}/star-apps/radarr/radarr.db"
-            owner: "{{ docker_user }}"
-            group: "{{ docker_user }}"
-            mode: 0644
+#        - name: Update permissions on Radarr DB file
+#          file:
+#            path: "/home/{{ docker_user }}/star-apps/radarr/radarr.db"
+#            owner: "{{ docker_user }}"
+#            group: "{{ docker_user }}"
+#            mode: 0644
 
-        - name: Update permissions on Sonarr DB file
-          file:
-            path: "/home/{{ docker_user }}/star-apps/sonarr/sonarr.db"
-            owner: "{{ docker_user }}"
-            group: "{{ docker_user }}"
-            mode: 0644
+#        - name: Update permissions on Sonarr DB file
+#          file:
+#            path: "/home/{{ docker_user }}/star-apps/sonarr/sonarr.db"
+#            owner: "{{ docker_user }}"
+#            group: "{{ docker_user }}"
+#            mode: 0644
 
-    - name: Start or restart Docker Compose services
-      docker_compose:
-        project_src: "/home/{{ docker_user }}/docker-compose"
-        state: present
-        restarted: yes
-        remove_orphans: yes
+#    - name: Start or restart Docker Compose services
+#      docker_compose:
+#        project_src: "/home/{{ docker_user }}/docker-compose"
+#        state: present
+#        restarted: yes
+#        remove_orphans: yes

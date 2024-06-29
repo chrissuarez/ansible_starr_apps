@@ -10,7 +10,7 @@ services:
     networks:
       - docker_bridge
     ports:
-      - 7878:7878
+      - "7878:7878"
     environment:
       - PUID=1000
       - PGID=1000
@@ -18,7 +18,7 @@ services:
       - TZ=Europe/London
     volumes:
       - /etc/localtime:/etc/localtime:ro
-      - /home/chris/star-apps/radarr:/config
+      - /mnt/truenas/docker-configs/star-apps/radarr:/config
       - /mnt/downloads/data:/data
 
   sonarr:
@@ -30,7 +30,7 @@ services:
     networks:
       - docker_bridge
     ports:
-      - 8989:8989
+      - "8989:8989"
     environment:
       - PUID=1000
       - PGID=1000
@@ -38,7 +38,7 @@ services:
       - TZ=Europe/London
     volumes:
       - /etc/localtime:/etc/localtime:ro
-      - /home/chris/star-apps/sonarr:/config
+      - /mnt/truenas/docker-configs/star-apps/sonarr:/config
       - /mnt/downloads/data:/data
 
   sabnzbd:
@@ -50,7 +50,7 @@ services:
     networks:
       - docker_bridge
     ports:
-      - 8080:8080
+      - "8080:8080"
     environment:
       - PUID=1000
       - PGID=1000
@@ -58,7 +58,7 @@ services:
       - TZ=Europe/London
     volumes:
       - /etc/localtime:/etc/localtime
-      - /home/chris/star-apps/sabnzbd:/config
+      - /mnt/truenas/docker-configs/star-apps/sabnzbd:/config
       - /mnt/downloads/data:/data
 
   notifiarr:
@@ -71,9 +71,9 @@ services:
     networks:
       - docker_bridge
     ports:
-      - 5454:5454
+      - "5454:5454"
     volumes:
-      - /home/chris/star-apps/notifiarr:/config
+      - /mnt/truenas/docker-configs/star-apps/notifiarr:/config
       - /var/run/utmp:/var/run/utmp
       - /etc/machine-id:/etc/machine-id
 
@@ -94,17 +94,119 @@ services:
       - UMASK=022
       - TZ=Europe/London
     volumes:
-      - /home/chris/star-apps/emby/certs:/certs
+      - /mnt/truenas/docker-configs/star-apps/emby/certs:/certs
       - /mnt/downloads/data:/data
-      - /home/chris/star-apps/emby:/config
+      - /mnt/truenas/docker-configs/star-apps/emby:/config
     ports:
-      - 8096:8096
-      - 8920:8920
+      - "8096:8096"
+      - "8920:8920"
     logging:
       driver: json-file
     networks:
       - docker_bridge
     restart: unless-stopped
+
+  bazarr:
+    image: lscr.io/linuxserver/bazarr:latest
+    container_name: bazarr
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - UMASK=022
+      - TZ=Europe/London
+    volumes:
+      - /mnt/truenas/docker-configs/star-apps/bazarr:/config
+      - /mnt/downloads/data:/data
+    ports:
+      - "6767:6767"
+    restart: unless-stopped
+    logging:
+      driver: json-file
+    networks:
+      - docker_bridge
+
+  jellyseerr:
+    image: fallenbagel/jellyseerr:latest
+    container_name: jellyseerr
+    environment:
+      - LOG_LEVEL=debug
+      - TZ=Europe/London
+      - JELLYFIN_TYPE=emby
+    ports:
+      - "5055:5055"
+    volumes:
+      - /mnt/truenas/docker-configs/star-apps/jellyseer/config:/app/config
+    restart: unless-stopped
+    logging:
+      driver: json-file
+    networks:
+      - docker_bridge
+
+  readarr:
+    container_name: readarr
+    image: lscr.io/linuxserver/readarr:develop
+    ports:
+      - "8787:8787"
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - UMASK=022
+      - TZ=Europe/London
+    volumes:
+      - /mnt/truenas/docker-configs/star-apps/readarr:/config
+      - /mnt/downloads/data:/data
+      - /mnt/truenas/docker-configs/star-apps/calibre/config/Calibre Library:/books
+#      - /mnt/downloads/data/usenet/complete:/data/usenet
+      - /mnt/downloads/data/usenet/complete:/downloads #optional
+    restart: unless-stopped
+    logging:
+      driver: json-file
+    networks:
+      - docker_bridge
+
+  calibre:
+    image: ghcr.io/linuxserver/calibre
+    container_name: calibre
+#    security_opt:
+#      - seccomp:unconfined #optional
+    environment:
+      - PUID=1000  # Adjust to your user ID
+      - PGID=1000  # Adjust to your group ID
+      - UMASK=022
+      - PASSWORD=books123 #optional
+      - TZ=Europe/London  # Adjust to your timezone
+    volumes:
+      - /mnt/truenas/docker-configs/star-apps/calibre/config:/config  # Path for configuration data
+      - /mnt/truenas/docker-configs/star-apps/calibre/upload:/upload
+      - /mnt/truenas/docker-configs/star-apps/calibre/plugins:/plugin
+      - /mnt/downloads/data/media/books:/Calibre_Library
+    ports:
+      - "8082:8080"  # Changed port for the Calibre server
+      - "8081:8081"
+    restart: unless-stopped
+    logging:
+      driver: json-file
+    networks:
+      - docker_bridge
+    
+  calibre-web:
+    image: ghcr.io/linuxserver/calibre-web
+    container_name: calibre-web
+    environment:
+      - PUID=1000  # Adjust to your user ID
+      - PGID=1000  # Adjust to your group ID
+      - UMASK=022
+    volumes:
+      - /mnt/truenas/docker-configs/star-apps/calibre/calibre-web:/config
+#      - /mnt/downloads/data/media/books:/books
+      - /mnt/truenas/docker-configs/star-apps/calibre/config/Calibre Library:/books
+    restart: unless-stopped
+    depends_on:
+      - calibre
+    ports:
+      - "8083:8083"
+    networks:
+      - docker_bridge
 
 
 networks:
