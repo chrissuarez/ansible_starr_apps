@@ -27,7 +27,7 @@
         state: present
       loop:
         - cifs-utils
-        # - nfs-common
+        - nfs-common
         - docker.io
         - docker-compose
 
@@ -39,12 +39,29 @@
             state: directory
             mode: '0775'
     
-    - name: Configure CIFS
+    - name: Add NFS mount location
+      block:
+        - name: Ensure CIFS mount point exists
+          file:
+            path: /mnt/truenas/docker-configs
+            state: directory
+            mode: '0775'
+
+    - name: Configure NFS in fstab
       block:
         - name: Add CIFS mount to fstab
           lineinfile:
             path: /etc/fstab
             line: "//192.168.68.132/data /mnt/downloads/data cifs credentials=/etc/smbcredentials,iocharset=utf8,uid=1000,gid=1000,file_mode=0775,dir_mode=0775 0 0"
+            state: present
+            create: yes
+
+    - name: Configure NFS
+      block:
+        - name: Add NFS mount to fstab
+          lineinfile:
+            path: /etc/fstab
+            line: "192.168.68.132:/mnt/storage/Backups/docker-configs /mnt/truenas/docker-configs nfs defaults 0 0"
             state: present
             create: yes
 
