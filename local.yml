@@ -29,7 +29,12 @@
         - cifs-utils
         - nfs-common
         - docker.io
-        - docker-compose
+
+    - name: Download Docker Compose CLI plugin
+      get_url:
+        url: "https://github.com/docker/compose/releases/download/v2.20.2/docker-compose-{{ ansible_system | lower }}-{{ ansible_architecture }}"
+        dest: /usr/local/bin/docker-compose
+        mode: '0755'
 
     - name: Configure CIFS
       block:
