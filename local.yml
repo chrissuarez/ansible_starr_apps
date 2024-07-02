@@ -3,74 +3,59 @@
   become: true
   vars:
     docker_user: chris
-#    star_apps:
-#      - name: radarr
-#        config: radarr_config.xml
-#        db: radarr-config.db.vault
-#      - name: sonarr
-#        config: sonarr_config.xml
-#        db: sonarr-config.db.vault
-#      - name: sabnzbd
-#        config: sabnzbd.ini
+    nfs_mounts:
+      - src: "192.168.68.132:/mnt/storage/data"
+        dest: "/mnt/downloads/data"
+      - src: "192.168.68.132:/mnt/storage/Backups/docker-configs"
+        dest: "/mnt/truenas/docker-configs"
 
-  pre_tasks:
+  tasks:
     - name: Update repository index (Ubuntu)
       apt:
         update_cache: yes
       changed_when: false
       when: ansible_distribution == "Ubuntu"
 
-  tasks:
     - name: Install required packages
       apt:
-        name: "{{ item }}"
+        name:
+          - nfs-common
+          - docker.io
+          - jq
         state: present
-      loop:
-        - cifs-utils
-        - nfs-common
-        - docker.io
+
+    - name: Fetch the latest Docker Compose version
+      uri:
+        url: https://api.github.com/repos/docker/compose/releases/latest
+        return_content: yes
+      register: latest_release
+
+    - name: Set Docker Compose version variable
+      set_fact:
+        docker_compose_version: "{{ latest_release.json.tag_name }}"
 
     - name: Download Docker Compose CLI plugin
       get_url:
-        url: "https://github.com/docker/compose/releases/download/v2.20.2/docker-compose-{{ ansible_system | lower }}-{{ ansible_architecture }}"
+        url: "https://github.com/docker/compose/releases/download/{{ docker_compose_version }}/docker-compose-{{ ansible_system | lower }}-{{ ansible_architecture }}"
         dest: /usr/local/bin/docker-compose
         mode: '0755'
 
-    - name: Configure CIFS
-      block:
-        - name: Ensure CIFS mount point exists
-          file:
-            path: /mnt/downloads/data
-            state: directory
-            mode: '0775'
-    
-    - name: Add NFS mount location
-      block:
-        - name: Ensure CIFS mount point exists
-          file:
-            path: /mnt/truenas/docker-configs
-            state: directory
-            mode: '0775'
+    - name: Ensure NFS mount points exist
+      file:
+        path: "{{ item.dest }}"
+        state: directory
+        mode: '0775'
+      loop: "{{ nfs_mounts }}"
 
-    - name: Configure NFS in fstab
-      block:
-        - name: Add CIFS mount to fstab
-          lineinfile:
-            path: /etc/fstab
-            line: "//192.168.68.132/data /mnt/downloads/data cifs credentials=/etc/smbcredentials,iocharset=utf8,uid=1000,gid=1000,file_mode=0775,dir_mode=0775 0 0"
-            state: present
-            create: yes
+    - name: Configure fstab for NFS mounts
+      lineinfile:
+        path: /etc/fstab
+        line: "{{ item.src }} {{ item.dest }} nfs defaults 0 0"
+        state: present
+        create: yes
+      loop: "{{ nfs_mounts }}"
 
-    - name: Configure NFS
-      block:
-        - name: Add NFS mount to fstab
-          lineinfile:
-            path: /etc/fstab
-            line: "192.168.68.132:/mnt/storage/Backups/docker-configs /mnt/truenas/docker-configs nfs defaults 0 0"
-            state: present
-            create: yes
-
-    - name: Mount CIFS share
+    - name: Mount all filesystems in fstab
       command: mount -a
 
     - name: Add Docker user to sudo group
@@ -79,16 +64,24 @@
         groups: sudo
         append: yes
 
+    - name: Create docker-group
+      group:
+        name: docker-group
+        state: present
+
+    - name: Add current user to docker-group
+      user:
+        name: "{{ ansible_env.USER }}"
+        groups: docker-group
+        append: yes
+
     - name: Create required directories
       file:
-        path: "{{ item }}"
+        path: "/home/{{ docker_user }}/docker-compose"
         state: directory
         owner: "{{ docker_user }}"
         group: "{{ docker_user }}"
         mode: 0755
-      loop:
-        - /home/{{ docker_user }}/docker-compose
-#        - /home/{{ docker_user }}/star-apps
 
     - name: Copy docker-compose file
       copy:
@@ -97,94 +90,6 @@
         owner: "{{ docker_user }}"
         group: "{{ docker_user }}"
         mode: 0644
-
-#    - name: Copy and decrypt Star App configs
-#      block:
-#        - name: Create Star App directories
-#          file:
-#            path: "/home/{{ docker_user }}/star-apps/{{ item.name }}"
-#            state: directory
-#            owner: "{{ docker_user }}"
-#            group: "{{ docker_user }}"
-#            mode: 0755
-#          loop: "{{ star_apps }}"
-
-#        - name: Copy encrypted Star App Config Files
-#          copy:
-#            src: "files/star-apps/{{ item.name }}/{{ item.config }}"
-#            dest: "/home/{{ docker_user }}/star-apps/{{ item.name }}/{{ item.config }}"
-#            owner: "{{ docker_user }}"
-#            group: "{{ docker_user }}"
-#            mode: 0775
-#            remote_src: yes
-#          loop: "{{ star_apps }}"
-
-#        - name: Copy encrypted Radarr DB file
-#          copy:
-#            src: "files/star-apps/radarr/{{ star_apps[0].db }}"
-#            dest: "/home/{{ docker_user }}/star-apps/radarr/{{ star_apps[0].db }}"
-#            owner: "{{ docker_user }}"
-#            group: "{{ docker_user }}"
-#            mode: 0775
-#            remote_src: yes
-
-#        - name: Copy encrypted Sonarr DB file
-#          copy:
-#            src: "files/star-apps/sonarr/{{ star_apps[1].db }}"
-#            dest: "/home/{{ docker_user }}/star-apps/sonarr/{{ star_apps[1].db }}"
-#            owner: "{{ docker_user }}"
-#            group: "{{ docker_user }}"
-#            mode: 0775
-#            remote_src: yes
-
-#        - name: Create list of config file paths
-#          set_fact:
-#            star_app_paths: "{{ star_app_paths | default([]) + [{'name': item.name, 'path': '/home/' + docker_user + '/star-apps/' ~ item.name ~ '/' ~ item.config}] }}"
-#          loop: "{{ star_apps }}"
-
-#        - name: Decrypt Star Config Files
-#          ansible.builtin.command: ansible-vault decrypt --vault-password-file /home/{{ docker_user }}/.vault_key {{ item.path }}
-#          loop_control:
-#            label: "{{ item.name }}"
-#          loop: "{{ star_app_paths }}"
-
-#        - name: Decrypt Radarr DB file
-#          ansible.builtin.command: ansible-vault decrypt --vault-password-file /home/{{ docker_user }}/.vault_key --output /home/{{ docker_user }}/star-apps/radarr/radarr.db /home/{{ docker_user }}/star-apps/radarr/{{ star_apps[0].db }}
-
-#        - name: Remove encrypted Radarr DB file
-#          ansible.builtin.file:
-#            path: "/home/{{ docker_user }}/star-apps/radarr/{{ star_apps[0].db }}"
-#            state: absent
-
-#        - name: Decrypt Sonarr DB file
-#          ansible.builtin.command: ansible-vault decrypt --vault-password-file /home/{{ docker_user }}/.vault_key --output /home/{{ docker_user }}/star-apps/sonarr/sonarr.db /home/{{ docker_user }}/star-apps/sonarr/{{ star_apps[1].db }}
-
-#        - name: Remove encrypted Sonarr DB file
-#          ansible.builtin.file:
-#            path: "/home/{{ docker_user }}/star-apps/sonarr/{{ star_apps[1].db }}"
-#            state: absent
-
-#        - name: Update permissions on Star app files
-#          file:
-#            path: "/home/{{ docker_user }}/star-apps/{{ item.name }}/{{ item.config }}"
-#            owner: "{{ docker_user }}"
-#            group: "{{ docker_user }}"
-#            mode: 0644
-#          loop: "{{ star_apps }}"
-
-#        - name: Update permissions on Radarr DB file
-#          file:
-#            path: "/home/{{ docker_user }}/star-apps/radarr/radarr.db"
-#            owner: "{{ docker_user }}"
-#            group: "{{ docker_user }}"
-#            mode: 0644
-
-#        - name: Update permissions on Sonarr DB file
-#          file:
-#            path: "/home/{{ docker_user }}/star-apps/sonarr/sonarr.db"
-#            owner: "{{ docker_user }}"
-#            group: "{{ docker_user }}"
-#            mode: 0644
 
     - name: Start or restart Docker Compose services
       docker_compose:
