@@ -3,11 +3,12 @@
   become: true
   vars:
     docker_user: chris
-    nfs_mounts:
-      - src: "192.168.68.132:/mnt/storage/data"
-        dest: "/mnt/downloads/data"
-      - src: "192.168.68.132:/mnt/storage/Backups/docker-configs"
-        dest: "/mnt/truenas/docker-configs"
+    nfs_mount_data:
+      src: "192.168.68.132:/mnt/storage/data"
+      dest: "/mnt/downloads/data"
+    nfs_mount_configs:
+      src: "192.168.68.132:/mnt/storage/Backups/docker-configs"
+      dest: "/mnt/truenas/docker-configs"
 
   tasks:
     - name: Update repository index (Ubuntu)
@@ -21,7 +22,13 @@
         name:
           - nfs-common
           - docker.io
+          - python3-pip
           - jq
+        state: present
+
+    - name: Install Docker SDK for Python
+      pip:
+        name: docker
         state: present
 
     - name: Fetch the latest Docker Compose version
@@ -40,23 +47,37 @@
         dest: /usr/local/bin/docker-compose
         mode: '0755'
 
-    - name: Ensure NFS mount points exist
+    - name: Ensure NFS mount point for Data exists
       file:
-        path: "{{ item.dest }}"
+        path: "{{ nfs_mount_data.dest }}"
         state: directory
-        mode: '0775'
-      loop: "{{ nfs_mounts }}"
+        mode: '0755'
+      become: true
 
-    - name: Configure fstab for NFS mounts
+    - name: Ensure NFS mount point for Docker Configs exists
+      file:
+        path: "{{ nfs_mount_configs.dest }}"
+        state: directory
+        mode: '0755'
+      become: true
+
+    - name: Configure fstab for NFS mount Data
       lineinfile:
         path: /etc/fstab
-        line: "{{ item.src }} {{ item.dest }} nfs defaults 0 0"
+        line: "{{ nfs_mount_data.src }} {{ nfs_mount_data.dest }} nfs defaults 0 0"
         state: present
         create: yes
-      loop: "{{ nfs_mounts }}"
+
+    - name: Configure fstab for NFS mount Docker Configs
+      lineinfile:
+        path: /etc/fstab
+        line: "{{ nfs_mount_configs.src }} {{ nfs_mount_configs.dest }} nfs defaults 0 0"
+        state: present
+        create: yes
 
     - name: Mount all filesystems in fstab
       command: mount -a
+      become: true
 
     - name: Add Docker user to sudo group
       user:
