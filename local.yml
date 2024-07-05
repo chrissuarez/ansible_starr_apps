@@ -90,7 +90,7 @@
         append: yes
 
     - name: Execute a command as the user with new group
-      command: some_command
+      command: id
       become: true
       become_user: "{{ docker_user }}"
       become_method: su
