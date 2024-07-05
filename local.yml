@@ -80,6 +80,7 @@
     - name: Create docker-group
       group:
         name: docker-group
+        gid: 2000
         state: present
 
     - name: Add current user to docker-group
@@ -87,6 +88,12 @@
         name: "{{ docker_user }}"
         groups: docker-group
         append: yes
+
+    - name: Execute a command as the user with new group
+      command: some_command
+      become: true
+      become_user: "{{ docker_user }}"
+      become_method: su
 
     - name: Create required directories
       file:
