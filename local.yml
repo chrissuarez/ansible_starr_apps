@@ -90,13 +90,8 @@
         append: yes
 
     - name: Refresh user groups without logging out (simulate new login shell)
-      command: su - "{{ docker_user }}" -c 'id'
+      command: exec su -l "{{ docker_user }}"
       register: login_shell_output
-
-    - name: Display the output from the login shell simulation
-      debug:
-        msg: "{{ login_shell_output.stdout_lines }}"
-
 
     - name: Create required directories
       file:
