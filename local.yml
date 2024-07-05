@@ -89,11 +89,14 @@
         groups: docker-group
         append: yes
 
-    - name: Execute a command as the user with new group
-      command: id
-      become: true
-      become_user: "{{ docker_user }}"
-      become_method: su
+    - name: Refresh user groups without logging out (simulate new login shell)
+      command: su - "{{ docker_user }}" -c 'id'
+      register: login_shell_output
+
+    - name: Display the output from the login shell simulation
+      debug:
+        msg: "{{ login_shell_output.stdout_lines }}"
+
 
     - name: Create required directories
       file:
