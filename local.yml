@@ -45,8 +45,6 @@
       file:
         path: "{{ nfs_mount_data.dest }}"
         state: directory
-        mode: '0755'
-      become: true
 
     - name: Ensure NFS mount point for Docker Configs exists
       file:
