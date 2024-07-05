@@ -9,7 +9,6 @@
     nfs_mount_configs:
       src: "192.168.68.132:/mnt/storage/Backups/docker-configs"
       dest: "/mnt/truenas/docker-configs"
-    venv_path: "/opt/docker_venv"
 
   tasks:
     - name: Update repository index (Ubuntu)
@@ -23,21 +22,8 @@
         name:
           - nfs-common
           - docker.io
-          - python3-pip
-          - python3-venv
           - jq
         state: present
-
-    - name: Create a virtual environment
-      command: python3 -m venv {{ venv_path }}
-      args:
-        creates: "{{ venv_path }}"
-
-    - name: Install Docker SDK for Python in virtual environment
-      command: "{{ venv_path }}/bin/pip install docker"
-      environment:
-        VIRTUAL_ENV: "{{ venv_path }}"
-        PATH: "{{ venv_path }}/bin:{{ ansible_env.PATH }}"
 
     - name: Fetch the latest Docker Compose version
       uri:
@@ -121,9 +107,6 @@
         mode: 0644
 
     - name: Start or restart Docker Compose services
-      environment:
-        VIRTUAL_ENV: "{{ venv_path }}"
-        PATH: "{{ venv_path }}/bin:{{ ansible_env.PATH }}"
       docker_compose:
         project_src: "/home/{{ docker_user }}/docker-compose"
         state: present
