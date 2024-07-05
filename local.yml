@@ -10,7 +10,6 @@
       src: "192.168.68.132:/mnt/storage/Backups/docker-configs"
       dest: "/mnt/truenas/docker-configs"
     venv_path: "/opt/docker_venv"
-    ansible_python_interpreter: "/opt/docker_venv/bin/python"
 
   tasks:
     - name: Update repository index (Ubuntu)
@@ -122,6 +121,9 @@
         mode: 0644
 
     - name: Start or restart Docker Compose services
+      environment:
+        VIRTUAL_ENV: "{{ venv_path }}"
+        PATH: "{{ venv_path }}/bin:{{ ansible_env.PATH }}"
       docker_compose:
         project_src: "/home/{{ docker_user }}/docker-compose"
         state: present
