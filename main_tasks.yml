@@ -1,0 +1,96 @@
+---
+- hosts: localhost
+  become: true
+  vars:
+    docker_user: chris
+    nfs_mount_data:
+      src: "192.168.68.132:/mnt/storage/data"
+      dest: "/mnt/downloads/data"
+    nfs_mount_configs:
+      src: "192.168.68.132:/mnt/storage/Backups/docker-configs"
+      dest: "/mnt/truenas/docker-configs"
+
+  tasks:
+    - name: Update repository index (Ubuntu)
+      apt:
+        update_cache: yes
+      changed_when: false
+      when: ansible_distribution == "Ubuntu"
+
+    - name: Install required packages
+      apt:
+        name:
+          - nfs-common
+          - docker.io
+          - jq
+        state: present
+
+    - name: Fetch the latest Docker Compose version
+      uri:
+        url: https://api.github.com/repos/docker/compose/releases/latest
+        return_content: yes
+      register: latest_release
+
+    - name: Set Docker Compose version variable
+      set_fact:
+        docker_compose_version: "{{ latest_release.json.tag_name }}"
+
+    - name: Download Docker Compose CLI plugin
+      get_url:
+        url: "https://github.com/docker/compose/releases/download/{{ docker_compose_version }}/docker-compose-{{ ansible_system | lower }}-{{ ansible_architecture }}"
+        dest: /usr/local/bin/docker-compose
+        mode: '0755'
+
+    - name: Ensure NFS mount point for Data exists
+      file:
+        path: "{{ nfs_mount_data.dest }}"
+        state: directory
+
+    - name: Ensure NFS mount point for Docker Configs exists
+      file:
+        path: "{{ nfs_mount_configs.dest }}"
+        state: directory
+        mode: '0755'
+      become: true
+
+    - name: Configure fstab for NFS mount Data
+      lineinfile:
+        path: /etc/fstab
+        line: "{{ nfs_mount_data.src }} {{ nfs_mount_data.dest }} nfs defaults 0 0"
+        state: present
+        create: yes
+
+    - name: Configure fstab for NFS mount Docker Configs
+      lineinfile:
+        path: /etc/fstab
+        line: "{{ nfs_mount_configs.src }} {{ nfs_mount_configs.dest }} nfs defaults 0 0"
+        state: present
+        create: yes
+
+
+    - name: Mount all filesystems in fstab
+      command: mount -a
+      become: true
+
+    - name: Create required directories
+      file:
+        path: "/home/{{ docker_user }}/docker-compose"
+        state: directory
+        owner: "{{ docker_user }}"
+        group: "{{ docker_user }}"
+        mode: 0755
+
+    - name: Copy docker-compose file
+      copy:
+        src: files/docker-compose.yml
+        dest: /home/{{ docker_user }}/docker-compose/docker-compose.yml
+        owner: "{{ docker_user }}"
+        group: "{{ docker_user }}"
+        mode: 0644
+
+    - name: Start or restart Docker Compose services
+      docker_compose:
+        project_src: "/home/{{ docker_user }}/docker-compose"
+        state: present
+        restarted: yes
+        remove_orphans: yes

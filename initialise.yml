@@ -1,0 +1,15 @@
+---
+- hosts: localhost
+  become: true
+  tasks:
+    - name: Check if docker-group exists
+      command: getent group docker-group
+      register: docker_group
+      ignore_errors: true
+
+    - name: Include initial setup tasks if docker-group does not exist
+      include_tasks: setup_users.yml
+      when: docker_group.rc != 0
+
+    - name: Always run these tasks
+      include_tasks: main_tasks.yml

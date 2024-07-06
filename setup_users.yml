@@ -1,0 +1,24 @@
+---
+- hosts: localhost
+  become: true
+  vars:
+    docker_user: chris
+
+  tasks:
+    - name: Add Docker user to sudo group
+      user:
+        name: "{{ docker_user }}"
+        groups: sudo
+        append: yes
+
+    - name: Create docker-group
+      group:
+        name: docker-group
+        gid: 2000
+        state: present
+
+    - name: Add current user to docker-group
+      user:
+        name: "{{ docker_user }}"
+        groups: docker-group
+        append: yes
