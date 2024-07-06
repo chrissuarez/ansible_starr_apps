@@ -1,10 +1,4 @@
----
-- hosts: localhost
-  become: true
-  vars:
-    docker_user: chris
 
-  tasks:
     - name: Add Docker user to sudo group
       user:
         name: "{{ docker_user }}"
