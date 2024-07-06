@@ -1,16 +1,4 @@
----
-- hosts: localhost
-  become: true
-  vars:
-    docker_user: chris
-    nfs_mount_data:
-      src: "192.168.68.132:/mnt/storage/data"
-      dest: "/mnt/downloads/data"
-    nfs_mount_configs:
-      src: "192.168.68.132:/mnt/storage/Backups/docker-configs"
-      dest: "/mnt/truenas/docker-configs"
 
-  tasks:
     - name: Update repository index (Ubuntu)
       apt:
         update_cache: yes
