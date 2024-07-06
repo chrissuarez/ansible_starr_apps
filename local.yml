@@ -67,10 +67,6 @@
         state: present
         create: yes
 
-    - name: Mount all filesystems in fstab
-      command: mount -a
-      become: true
-
     - name: Add Docker user to sudo group
       user:
         name: "{{ docker_user }}"
@@ -92,6 +88,10 @@
     - name: Refresh user groups without logging out (simulate new login shell)
       command: exec su -l "{{ docker_user }}"
       register: login_shell_output
+
+    - name: Mount all filesystems in fstab
+      command: mount -a
+      become: true
 
     - name: Create required directories
       file:
